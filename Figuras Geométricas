@@ -1,0 +1,114 @@
+using System;
+
+namespace TareaFiguras
+{
+    // La clase Circulo representa un círculo geométrico y encapsula el radio como tipo de dato primitivo (double).
+    // Proporciona métodos para calcular el área y el perímetro (circunferencia).
+    public class Circulo
+    {
+        // Campo privado que almacena el valor del radio del círculo.
+        private double radio;
+
+        // Constructor que recibe el radio y lo asigna al campo privado.
+        public Circulo(double radio)
+        {
+            this.radio = radio;
+        }
+
+        // Propiedad pública para acceder y modificar el radio de forma controlada.
+        public double Radio
+        {
+            get { return radio; }
+            set { radio = value; }
+        }
+
+        // CalcularArea es una función que devuelve un valor double.
+        // Se utiliza para calcular el área de un círculo usando la fórmula: π * radio^2.
+        public double CalcularArea()
+        {
+            return Math.PI * radio * radio;
+        }
+
+        // CalcularPerimetro es una función que devuelve un valor double.
+        // Se utiliza para calcular el perímetro (circunferencia) de un círculo usando la fórmula: 2 * π * radio.
+        public double CalcularPerimetro()
+        {
+            return 2 * Math.PI * radio;
+        }
+    }
+
+    // La clase Rectangulo representa un rectángulo geométrico y encapsula el ancho y el alto
+    // como tipos de datos primitivos (double). Proporciona métodos para calcular el área y el perímetro.
+    public class Rectangulo
+    {
+        // Campos privados que almacenan el ancho y el alto del rectángulo.
+        private double ancho;
+        private double alto;
+
+        // Constructor que recibe el ancho y el alto y los asigna a los campos privados.
+        public Rectangulo(double ancho, double alto)
+        {
+            this.ancho = ancho;
+            this.alto = alto;
+        }
+
+        // Propiedad pública para acceder y modificar el ancho de forma controlada.
+        public double Ancho
+        {
+            get { return ancho; }
+            set { ancho = value; }
+        }
+
+        // Propiedad pública para acceder y modificar el alto de forma controlada.
+        public double Alto
+        {
+            get { return alto; }
+            set { alto = value; }
+        }
+
+        // CalcularArea es una función que devuelve un valor double.
+        // Se utiliza para calcular el área de un rectángulo usando la fórmula: ancho * alto.
+        public double CalcularArea()
+        {
+            return ancho * alto;
+        }
+
+        // CalcularPerimetro es una función que devuelve un valor double.
+        // Se utiliza para calcular el perímetro de un rectángulo usando la fórmula: 2 * (ancho + alto).
+        public double CalcularPerimetro()
+        {
+            return 2 * (ancho + alto);
+        }
+    }
+
+    // La clase Program contiene el método Main, punto de entrada de la aplicación.
+    // Aquí se crean objetos de las clases Circulo y Rectangulo y se muestran sus áreas y perímetros.
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            // Crear un objeto de tipo Circulo con un radio de 5 unidades.
+            Circulo miCirculo = new Circulo(5.0);
+
+            Console.WriteLine("=== CÍRCULO ===");
+            Console.WriteLine("Radio: " + miCirculo.Radio);
+            Console.WriteLine("Área del círculo: " + miCirculo.CalcularArea());
+            Console.WriteLine("Perímetro del círculo: " + miCirculo.CalcularPerimetro());
+            Console.WriteLine();
+
+            // Crear un objeto de tipo Rectangulo con ancho 4 y alto 3 unidades.
+            Rectangulo miRectangulo = new Rectangulo(4.0, 3.0);
+
+            Console.WriteLine("=== RECTÁNGULO ===");
+            Console.WriteLine("Ancho: " + miRectangulo.Ancho);
+            Console.WriteLine("Alto: " + miRectangulo.Alto);
+            Console.WriteLine("Área del rectángulo: " + miRectangulo.CalcularArea());
+            Console.WriteLine("Perímetro del rectángulo: " + miRectangulo.CalcularPerimetro());
+            Console.WriteLine();
+
+            // Mensaje final para indicar que el programa ha terminado.
+            Console.WriteLine("Presione cualquier tecla para finalizar...");
+            Console.ReadKey();
+        }
+    }
+}
