@@ -1,0 +1,320 @@
+using System;
+
+namespace AgendaTelefonicaUEA
+{
+    // Record (registro moderno en C#): agrupa datos heterogéneos de un contacto
+    public record Contacto(
+        int Id,
+        string Nombre,
+        string Telefono,
+        string Correo,
+        string Direccion
+    );
+
+    public class Agenda
+    {
+        // Vector (arreglo) para almacenar contactos
+        private Contacto[] _contactos;
+        private int _contador;
+        private int _siguienteId = 1;
+
+        // Matriz para reportería: conteo por inicial (A-Z) y por tipo de contacto (0=con correo, 1=sin correo)
+        // Filas: 26 letras, Columnas: 2 categorías
+        private int[,] _reporteInicialCorreo = new int[26, 2];
+
+        public Agenda(int capacidadInicial = 50)
+        {
+            _contactos = new Contacto[capacidadInicial];
+            _contador = 0;
+        }
+
+        // Agregar contacto (crea un nuevo registro Contacto)
+        public void Agregar(string nombre, string telefono, string correo, string direccion)
+        {
+            if (_contador >= _contactos.Length)
+            {
+                // Si se llena el vector, crece (para que no te quedes sin espacio)
+                ExpandirArreglo();
+            }
+
+            var nuevo = new Contacto(
+                Id: _siguienteId++,
+                Nombre: nombre.Trim(),
+                Telefono: telefono.Trim(),
+                Correo: correo.Trim(),
+                Direccion: direccion.Trim()
+            );
+
+            _contactos[_contador++] = nuevo;
+
+            // Actualizar matriz de reportería
+            ActualizarReporte(nuevo, sumar: true);
+        }
+
+        // Listar todos los contactos (reportería básica)
+        public void Listar()
+        {
+            if (_contador == 0)
+            {
+                Console.WriteLine("No hay contactos registrados.");
+                return;
+            }
+
+            Console.WriteLine("\n--- LISTA DE CONTACTOS ---");
+            for (int i = 0; i < _contador; i++)
+            {
+                var c = _contactos[i];
+                Console.WriteLine($"ID: {c.Id} | Nombre: {c.Nombre} | Tel: {c.Telefono} | Correo: {c.Correo} | Dir: {c.Direccion}");
+            }
+        }
+
+        // Buscar por ID
+        public Contacto? BuscarPorId(int id)
+        {
+            for (int i = 0; i < _contador; i++)
+            {
+                if (_contactos[i].Id == id)
+                    return _contactos[i];
+            }
+            return null;
+        }
+
+        // Buscar por nombre (contiene)
+        public void BuscarPorNombre(string texto)
+        {
+            texto = texto.Trim().ToLower();
+            bool encontrado = false;
+
+            Console.WriteLine("\n--- RESULTADOS DE BÚSQUEDA ---");
+            for (int i = 0; i < _contador; i++)
+            {
+                var c = _contactos[i];
+                if (c.Nombre.ToLower().Contains(texto))
+                {
+                    Console.WriteLine($"ID: {c.Id} | {c.Nombre} | {c.Telefono}");
+                    encontrado = true;
+                }
+            }
+
+            if (!encontrado)
+                Console.WriteLine("No se encontraron coincidencias.");
+        }
+
+        // Editar contacto (reemplaza el record por uno nuevo con cambios)
+        public bool Editar(int id, string nuevoNombre, string nuevoTelefono, string nuevoCorreo, string nuevaDireccion)
+        {
+            for (int i = 0; i < _contador; i++)
+            {
+                if (_contactos[i].Id == id)
+                {
+                    var anterior = _contactos[i];
+                    ActualizarReporte(anterior, sumar: false);
+
+                    var actualizado = anterior with
+                    {
+                        Nombre = nuevoNombre.Trim(),
+                        Telefono = nuevoTelefono.Trim(),
+                        Correo = nuevoCorreo.Trim(),
+                        Direccion = nuevaDireccion.Trim()
+                    };
+
+                    _contactos[i] = actualizado;
+                    ActualizarReporte(actualizado, sumar: true);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Eliminar contacto (compacta el vector)
+        public bool Eliminar(int id)
+        {
+            for (int i = 0; i < _contador; i++)
+            {
+                if (_contactos[i].Id == id)
+                {
+                    ActualizarReporte(_contactos[i], sumar: false);
+
+                    // Mover elementos hacia la izquierda
+                    for (int j = i; j < _contador - 1; j++)
+                        _contactos[j] = _contactos[j + 1];
+
+                    _contador--;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Reportería usando la matriz
+        public void MostrarReporte()
+        {
+            Console.WriteLine("\n--- REPORTERÍA ---");
+            Console.WriteLine("Conteo por inicial del nombre (A-Z) y por correo (Con/Sin):\n");
+            Console.WriteLine("Inicial | Con correo | Sin correo");
+            Console.WriteLine("---------------------------------");
+
+            for (int i = 0; i < 26; i++)
+            {
+                char letra = (char)('A' + i);
+                int conCorreo = _reporteInicialCorreo[i, 0];
+                int sinCorreo = _reporteInicialCorreo[i, 1];
+
+                if (conCorreo != 0 || sinCorreo != 0)
+                {
+                    Console.WriteLine($"   {letra}   |     {conCorreo}     |     {sinCorreo}");
+                }
+            }
+        }
+
+        // ---------- Métodos privados ----------
+
+        private void ExpandirArreglo()
+        {
+            // Duplica la capacidad del vector
+            int nuevaCapacidad = _contactos.Length * 2;
+            var nuevoArreglo = new Contacto[nuevaCapacidad];
+
+            for (int i = 0; i < _contactos.Length; i++)
+                nuevoArreglo[i] = _contactos[i];
+
+            _contactos = nuevoArreglo;
+        }
+
+        private void ActualizarReporte(Contacto c, bool sumar)
+        {
+            // Inicial del nombre (A-Z). Si no es letra, no cuenta.
+            if (string.IsNullOrWhiteSpace(c.Nombre)) return;
+
+            char inicial = char.ToUpper(c.Nombre.Trim()[0]);
+            if (inicial < 'A' || inicial > 'Z') return;
+
+            int fila = inicial - 'A';
+            bool tieneCorreo = !string.IsNullOrWhiteSpace(c.Correo);
+
+            int col = tieneCorreo ? 0 : 1;
+
+            _reporteInicialCorreo[fila, col] += sumar ? 1 : -1;
+        }
+    }
+
+    public class Program
+    {
+        static void Main()
+        {
+            var agenda = new Agenda();
+
+            while (true)
+            {
+                Console.WriteLine("\n=== AGENDA TELEFÓNICA (POO - C#) ===");
+                Console.WriteLine("1) Agregar contacto");
+                Console.WriteLine("2) Listar contactos");
+                Console.WriteLine("3) Buscar por nombre");
+                Console.WriteLine("4) Editar contacto por ID");
+                Console.WriteLine("5) Eliminar contacto por ID");
+                Console.WriteLine("6) Reportería");
+                Console.WriteLine("0) Salir");
+                Console.Write("Seleccione una opción: ");
+
+                string? opcion = Console.ReadLine();
+
+                switch (opcion)
+                {
+                    case "1":
+                        AgregarUI(agenda);
+                        break;
+                    case "2":
+                        agenda.Listar();
+                        break;
+                    case "3":
+                        Console.Write("Ingrese nombre o parte del nombre: ");
+                        agenda.BuscarPorNombre(Console.ReadLine() ?? "");
+                        break;
+                    case "4":
+                        EditarUI(agenda);
+                        break;
+                    case "5":
+                        EliminarUI(agenda);
+                        break;
+                    case "6":
+                        agenda.MostrarReporte();
+                        break;
+                    case "0":
+                        Console.WriteLine("Saliendo...");
+                        return;
+                    default:
+                        Console.WriteLine("Opción inválida.");
+                        break;
+                }
+            }
+        }
+
+        // UI: agregar
+        static void AgregarUI(Agenda agenda)
+        {
+            Console.Write("Nombre: ");
+            string nombre = Console.ReadLine() ?? "";
+
+            Console.Write("Teléfono: ");
+            string tel = Console.ReadLine() ?? "";
+
+            Console.Write("Correo: ");
+            string correo = Console.ReadLine() ?? "";
+
+            Console.Write("Dirección: ");
+            string dir = Console.ReadLine() ?? "";
+
+            agenda.Agregar(nombre, tel, correo, dir);
+            Console.WriteLine("Contacto agregado correctamente.");
+        }
+
+        // UI: editar
+        static void EditarUI(Agenda agenda)
+        {
+            Console.Write("Ingrese el ID a editar: ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID inválido.");
+                return;
+            }
+
+            var encontrado = agenda.BuscarPorId(id);
+            if (encontrado is null)
+            {
+                Console.WriteLine("No existe un contacto con ese ID.");
+                return;
+            }
+
+            Console.WriteLine($"Editando: {encontrado.Nombre} | {encontrado.Telefono}");
+
+            Console.Write("Nuevo nombre: ");
+            string nombre = Console.ReadLine() ?? "";
+
+            Console.Write("Nuevo teléfono: ");
+            string tel = Console.ReadLine() ?? "";
+
+            Console.Write("Nuevo correo: ");
+            string correo = Console.ReadLine() ?? "";
+
+            Console.Write("Nueva dirección: ");
+            string dir = Console.ReadLine() ?? "";
+
+            bool ok = agenda.Editar(id, nombre, tel, correo, dir);
+            Console.WriteLine(ok ? "Contacto actualizado." : "No se pudo actualizar.");
+        }
+
+        // UI: eliminar
+        static void EliminarUI(Agenda agenda)
+        {
+            Console.Write("Ingrese el ID a eliminar: ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID inválido.");
+                return;
+            }
+
+            bool ok = agenda.Eliminar(id);
+            Console.WriteLine(ok ? "Contacto eliminado." : "No se encontró el contacto.");
+        }
+    }
+}
