@@ -1,0 +1,249 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+
+namespace ListaTuplasUEA
+{
+    public interface IExercise
+    {
+        string Name { get; }
+        void Run();
+    }
+
+    public static class Input
+    {
+        public static int ReadInt(string prompt)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                var s = Console.ReadLine()?.Trim();
+                if (int.TryParse(s, out int value)) return value;
+                Console.WriteLine("Entrada inválida. Intenta de nuevo.");
+            }
+        }
+
+        public static double ReadDouble(string prompt)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                var s = Console.ReadLine()?.Trim();
+
+                // Acepta coma o punto decimal.
+                s = s?.Replace(',', '.');
+
+                if (double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                    return value;
+
+                Console.WriteLine("Entrada inválida. Intenta de nuevo (ej: 7.5).");
+            }
+        }
+
+        public static string ReadNonEmpty(string prompt)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                var s = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(s)) return s.Trim();
+                Console.WriteLine("No puede estar vacío.");
+            }
+        }
+    }
+
+    // -------------------- Ejercicio 3 --------------------
+    public class Exercise03 : IExercise
+    {
+        public string Name => "Ejercicio 3: Asignaturas + notas";
+
+        public void Run()
+        {
+            var subjects = new List<string> { "Matemáticas", "Física", "Química", "Historia", "Lengua" };
+            var grades = new Dictionary<string, double>();
+
+            Console.WriteLine("Ingresa la nota de cada asignatura:");
+            foreach (var subject in subjects)
+            {
+                double grade = Input.ReadDouble($"Nota en {subject}: ");
+                grades[subject] = grade;
+            }
+
+            Console.WriteLine();
+            foreach (var subject in subjects)
+            {
+                Console.WriteLine($"En {subject} has sacado {grades[subject]}");
+            }
+        }
+    }
+
+    // -------------------- Ejercicio 4 --------------------
+    public class Exercise04 : IExercise
+    {
+        public string Name => "Ejercicio 4: Lotería primitiva (ordenar)";
+
+        public void Run()
+        {
+            int n = Input.ReadInt("¿Cuántos números ganadores vas a ingresar? ");
+            var winners = new List<int>();
+
+            for (int i = 1; i <= n; i++)
+            {
+                int value = Input.ReadInt($"Número {i}: ");
+                winners.Add(value);
+            }
+
+            winners.Sort();
+            Console.WriteLine("Números ordenados (menor a mayor): " + string.Join(", ", winners));
+        }
+    }
+
+    // -------------------- Ejercicio 7 --------------------
+    public class Exercise07 : IExercise
+    {
+        public string Name => "Ejercicio 7: Abecedario sin posiciones múltiplos de 3";
+
+        public void Run()
+        {
+            // Abecedario español sin ñ (puedes agregarla si tu docente lo pide)
+            var alphabet = "abcdefghijklmnopqrstuvwxyz".ToCharArray().ToList();
+
+            // Eliminar letras en posiciones múltiplos de 3 (considerando posiciones 1..n)
+            // Ej: pos 3,6,9...
+            var result = new List<char>();
+            for (int i = 0; i < alphabet.Count; i++)
+            {
+                int position = i + 1;
+                if (position % 3 != 0)
+                    result.Add(alphabet[i]);
+            }
+
+            Console.WriteLine("Lista resultante:");
+            Console.WriteLine(string.Join(", ", result));
+        }
+    }
+
+    // -------------------- Ejercicio 8 --------------------
+    public class Exercise08 : IExercise
+    {
+        public string Name => "Ejercicio 8: Palíndromo";
+
+        public void Run()
+        {
+            string word = Input.ReadNonEmpty("Ingresa una palabra: ");
+
+            // Normalización simple: minúsculas y solo letras/dígitos
+            string clean = new string(word
+                .ToLowerInvariant()
+                .Where(char.IsLetterOrDigit)
+                .ToArray());
+
+            bool isPalindrome = clean.SequenceEqual(clean.Reverse());
+
+            Console.WriteLine(isPalindrome ? "Sí, es un palíndromo." : "No, no es un palíndromo.");
+        }
+    }
+
+    // -------------------- Ejercicio 13 --------------------
+    public class Exercise13 : IExercise
+    {
+        public string Name => "Ejercicio 13: Media y desviación típica";
+
+        public void Run()
+        {
+            string raw = Input.ReadNonEmpty("Ingresa números separados por comas (ej: 1,2,3.5,4): ");
+            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var numbers = new List<double>();
+            foreach (var p in parts)
+            {
+                var s = p.Replace(',', '.');
+                if (!double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                {
+                    Console.WriteLine($"Valor inválido: {p}");
+                    return;
+                }
+                numbers.Add(value);
+            }
+
+            if (numbers.Count == 0)
+            {
+                Console.WriteLine("No se ingresaron números.");
+                return;
+            }
+
+            double mean = numbers.Average();
+
+            // Desviación típica poblacional (dividiendo para N)
+            double variance = numbers.Sum(x => Math.Pow(x - mean, 2)) / numbers.Count;
+            double stdDev = Math.Sqrt(variance);
+
+            Console.WriteLine($"Media: {mean}");
+            Console.WriteLine($"Desviación típica: {stdDev}");
+        }
+    }
+
+    // -------------------- Menú principal --------------------
+    public class ExerciseMenu
+    {
+        private readonly List<IExercise> _exercises;
+
+        public ExerciseMenu(IEnumerable<IExercise> exercises)
+        {
+            _exercises = exercises.ToList();
+        }
+
+        public void Show()
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("=== MENÚ - LISTAS Y TUPLAS (C#) ===");
+                for (int i = 0; i < _exercises.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {_exercises[i].Name}");
+                }
+                Console.WriteLine("0. Salir");
+
+                int choice = Input.ReadInt("Elige una opción: ");
+                Console.WriteLine();
+
+                if (choice == 0) break;
+
+                if (choice < 1 || choice > _exercises.Count)
+                {
+                    Console.WriteLine("Opción inválida.");
+                    continue;
+                }
+
+                try
+                {
+                    _exercises[choice - 1].Run();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Ocurrió un error al ejecutar el ejercicio.");
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+    }
+
+    public class Program
+    {
+        public static void Main()
+        {
+            var menu = new ExerciseMenu(new IExercise[]
+            {
+                new Exercise03(),
+                new Exercise04(),
+                new Exercise07(),
+                new Exercise08(),
+                new Exercise13()
+            });
+
+            menu.Show();
+        }
+    }
+}
