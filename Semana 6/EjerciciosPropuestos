@@ -1,0 +1,112 @@
+using System;
+
+public class Node
+{
+    public int Data;
+    public Node? Next;
+
+    public Node(int data)
+    {
+        Data = data;
+        Next = null;
+    }
+}
+
+public class LinkedList
+{
+    private Node? head;
+
+    public void AddLast(int value)
+    {
+        var newNode = new Node(value);
+
+        if (head == null)
+        {
+            head = newNode;
+            return;
+        }
+
+        Node current = head;
+        while (current.Next != null)
+            current = current.Next;
+
+        current.Next = newNode;
+    }
+
+    // EJERCICIO 2: Invertir la lista (Reverse)
+    public void Reverse()
+    {
+        Node? prev = null;
+        Node? current = head;
+
+        while (current != null)
+        {
+            Node? nextTemp = current.Next;
+            current.Next = prev;
+            prev = current;
+            current = nextTemp;
+        }
+
+        head = prev;
+    }
+
+    // EJERCICIO 3: Buscar y retornar el número de veces que aparece un dato
+    public int CountOccurrences(int value)
+    {
+        int count = 0;
+        Node? current = head;
+
+        while (current != null)
+        {
+            if (current.Data == value) count++;
+            current = current.Next;
+        }
+
+        if (count == 0)
+        {
+            Console.WriteLine($"Dato no encontrado: {value}");
+        }
+
+        return count;
+    }
+
+    public void Print()
+    {
+        Node? current = head;
+        while (current != null)
+        {
+            Console.Write(current.Data);
+            if (current.Next != null) Console.Write(" -> ");
+            current = current.Next;
+        }
+        Console.WriteLine();
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        LinkedList list = new LinkedList();
+
+        // Ejemplo de carga
+        list.AddLast(5);
+        list.AddLast(2);
+        list.AddLast(5);
+        list.AddLast(9);
+        list.AddLast(5);
+
+        Console.WriteLine("Lista original:");
+        list.Print();
+
+        // Ejercicio 2
+        list.Reverse();
+        Console.WriteLine("Lista invertida:");
+        list.Print();
+
+        // Ejercicio 3
+        int buscar = 5;
+        int veces = list.CountOccurrences(buscar);
+        Console.WriteLine($"El dato {buscar} aparece {veces} vez/veces.");
+    }
+}
