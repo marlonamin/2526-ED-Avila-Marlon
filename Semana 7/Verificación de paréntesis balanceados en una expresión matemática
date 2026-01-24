@@ -1,0 +1,64 @@
+using System;
+using System.Collections.Generic;
+
+/// <summary>
+/// Programa que verifica si una expresión tiene paréntesis, llaves y corchetes balanceados
+/// utilizando una pila (Stack).
+/// </summary>
+class BalanceChecker
+{
+    static void Main()
+    {
+        Console.WriteLine("Ingrese una expresión:");
+        string input = Console.ReadLine();
+
+        bool balanced = IsBalanced(input);
+
+        if (balanced)
+            Console.WriteLine("Salida esperada: Fórmula balanceada.");
+        else
+            Console.WriteLine("Salida esperada: Fórmula NO balanceada.");
+    }
+
+    /// <summary>
+    /// Determina si los símbolos (), {}, [] están balanceados.
+    /// </summary>
+    /// <param name="expression">Cadena a evaluar</param>
+    /// <returns>true si está balanceada, false si no</returns>
+    static bool IsBalanced(string expression)
+    {
+        Stack<char> stack = new Stack<char>();
+
+        foreach (char c in expression)
+        {
+            // Si es un símbolo de apertura, se apila
+            if (c == '(' || c == '{' || c == '[')
+            {
+                stack.Push(c);
+            }
+            // Si es un símbolo de cierre, se valida con el tope de la pila
+            else if (c == ')' || c == '}' || c == ']')
+            {
+                if (stack.Count == 0) return false; // No hay apertura para cerrar
+
+                char top = stack.Pop();
+
+                // Verificar correspondencia
+                if (!IsMatch(top, c)) return false;
+            }
+        }
+
+        // Si quedaron aperturas sin cerrar, no está balanceada
+        return stack.Count == 0;
+    }
+
+    /// <summary>
+    /// Verifica si una apertura y un cierre son pareja válida.
+    /// </summary>
+    static bool IsMatch(char open, char close)
+    {
+        return (open == '(' && close == ')') ||
+               (open == '{' && close == '}') ||
+               (open == '[' && close == ']');
+    }
+}

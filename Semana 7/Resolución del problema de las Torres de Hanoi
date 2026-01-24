@@ -1,0 +1,121 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Resolución del problema de Torres de Hanoi usando pilas (Stack).
+/// Muestra paso a paso los movimientos y el estado de cada torre.
+/// </summary>
+class TowersOfHanoiStacks
+{
+    static void Main()
+    {
+        Console.Write("Ingrese el número de discos: ");
+        int n = int.Parse(Console.ReadLine());
+
+        // Torres representadas como pilas
+        Stack<int> A = new Stack<int>();
+        Stack<int> B = new Stack<int>();
+        Stack<int> C = new Stack<int>();
+
+        // Inicializar torre A con discos (n ... 1)
+        for (int i = n; i >= 1; i--)
+            A.Push(i);
+
+        Console.WriteLine("\nEstado inicial:");
+        PrintTowers(A, B, C);
+
+        int step = 0;
+        SolveHanoi(n, A, C, B, "A", "C", "B", ref step);
+
+        Console.WriteLine($"\n✅ Resuelto en {step} movimientos.");
+    }
+
+    /// <summary>
+    /// Resuelve Hanoi moviendo n discos desde "from" hacia "to", usando "aux" como auxiliar.
+    /// </summary>
+    static void SolveHanoi(int n,
+                           Stack<int> from,
+                           Stack<int> to,
+                           Stack<int> aux,
+                           string fromName,
+                           string toName,
+                           string auxName,
+                           ref int step)
+    {
+        if (n == 1)
+        {
+            MoveDisk(from, to, fromName, toName, ref step);
+            PrintTowersGlobal(fromName, toName, auxName); // imprime estado (ver abajo)
+            return;
+        }
+
+        // 1) mover n-1 de origen a auxiliar
+        SolveHanoi(n - 1, from, aux, to, fromName, auxName, toName, ref step);
+
+        // 2) mover el disco n de origen a destino
+        MoveDisk(from, to, fromName, toName, ref step);
+        PrintTowersGlobal(fromName, toName, auxName);
+
+        // 3) mover n-1 de auxiliar a destino
+        SolveHanoi(n - 1, aux, to, from, auxName, toName, fromName, ref step);
+    }
+
+    /// <summary>
+    /// Realiza el movimiento de un disco (pop de una pila y push en otra).
+    /// </summary>
+    static void MoveDisk(Stack<int> from, Stack<int> to,
+                         string fromName, string toName,
+                         ref int step)
+    {
+        int disk = from.Pop();
+        to.Push(disk);
+        step++;
+        Console.WriteLine($"Paso {step}: Mover disco {disk} de {fromName} -> {toName}");
+    }
+
+    // ---- IMPRESIÓN DE TORRES ----
+    // Para poder imprimir siempre bien, guardamos referencias globales.
+    static Stack<int> TowerA, TowerB, TowerC;
+
+    static TowersOfHanoiStacks()
+    {
+        // Constructor estático vacío (las referencias se asignan más abajo en PrintTowers)
+    }
+
+    /// <summary>
+    /// Imprime las torres en pantalla.
+    /// </summary>
+    static void PrintTowers(Stack<int> A, Stack<int> B, Stack<int> C)
+    {
+        // Guardamos referencias globales para imprimir desde cualquier llamada
+        TowerA = A; TowerB = B; TowerC = C;
+
+        Console.WriteLine($"A: {FormatStack(A)}");
+        Console.WriteLine($"B: {FormatStack(B)}");
+        Console.WriteLine($"C: {FormatStack(C)}");
+        Console.WriteLine(new string('-', 30));
+    }
+
+    /// <summary>
+    /// Imprime torres usando las referencias globales.
+    /// </summary>
+    static void PrintTowersGlobal(string aName, string bName, string cName)
+    {
+        // Nombres son decorativos; las torres reales siempre son A,B,C
+        Console.WriteLine("Estado actual:");
+        Console.WriteLine($"A: {FormatStack(TowerA)}");
+        Console.WriteLine($"B: {FormatStack(TowerB)}");
+        Console.WriteLine($"C: {FormatStack(TowerC)}");
+        Console.WriteLine(new string('-', 30));
+    }
+
+    /// <summary>
+    /// Convierte una pila a string sin destruirla (muestra de abajo hacia arriba).
+    /// </summary>
+    static string FormatStack(Stack<int> stack)
+    {
+        // Stack.ToArray() devuelve del tope hacia abajo, por eso invertimos para visualizar base->tope
+        return "[" + string.Join(", ", stack.ToArray().Reverse()) + "]";
+    }
+}
