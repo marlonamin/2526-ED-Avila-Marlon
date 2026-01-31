@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+
+class Persona
+{
+    public string Nombre { get; set; }
+
+    public Persona(string nombre)
+    {
+        Nombre = nombre;
+    }
+}
+
+class Atraccion
+{
+    private Queue<Persona> cola;
+    private int capacidadMaxima;
+    private int asientosOcupados;
+
+    public Atraccion(int capacidad)
+    {
+        cola = new Queue<Persona>();
+        capacidadMaxima = capacidad;
+        asientosOcupados = 0;
+    }
+
+    public void AgregarPersona(string nombre)
+    {
+        if (asientosOcupados < capacidadMaxima)
+        {
+            cola.Enqueue(new Persona(nombre));
+            Console.WriteLine($"Persona {nombre} agregada a la cola.");
+        }
+        else
+        {
+            Console.WriteLine("Todos los asientos han sido vendidos.");
+        }
+    }
+
+    public void AsignarAsiento()
+    {
+        if (cola.Count > 0 && asientosOcupados < capacidadMaxima)
+        {
+            Persona persona = cola.Dequeue();
+            asientosOcupados++;
+            Console.WriteLine($"Asiento asignado a {persona.Nombre}. Asientos ocupados: {asientosOcupados}");
+        }
+        else
+        {
+            Console.WriteLine("No hay personas en la cola o no hay asientos disponibles.");
+        }
+    }
+
+    public void MostrarCola()
+    {
+        Console.WriteLine("Personas en espera:");
+        foreach (var persona in cola)
+        {
+            Console.WriteLine(persona.Nombre);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Atraccion atraccion = new Atraccion(30);
+        int opcion;
+
+        do
+        {
+            Console.WriteLine("\n1. Agregar persona");
+            Console.WriteLine("2. Asignar asiento");
+            Console.WriteLine("3. Mostrar cola");
+            Console.WriteLine("4. Salir");
+            Console.Write("Seleccione una opción: ");
+            opcion = int.Parse(Console.ReadLine());
+
+            switch (opcion)
+            {
+                case 1:
+                    Console.Write("Ingrese nombre: ");
+                    string nombre = Console.ReadLine();
+                    atraccion.AgregarPersona(nombre);
+                    break;
+
+                case 2:
+                    atraccion.AsignarAsiento();
+                    break;
+
+                case 3:
+                    atraccion.MostrarCola();
+                    break;
+            }
+
+        } while (opcion != 4);
+    }
+}
